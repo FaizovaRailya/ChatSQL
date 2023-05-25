@@ -1,25 +1,29 @@
 #include <iostream>
 #include<string>
+#include<string.h>
 #include "Chat_Server.h"
 #include "Sha1.h"
+#include <ctime>
+#include <chrono>
+#pragma warning(disable : 4996)
 
 std::shared_ptr<User> Chat_Server::getUserByLogin(const std::string& login) const {			// указатель на логин пользователя
-	for (auto& user : UserSpisok) {
+	/*for (auto& user : UserSpisok) {
 		if (login == user.getLogin())
 			return std::make_shared<User>(user);
 	}
-	return nullptr;
+	return nullptr;*/
 }
 
 std::shared_ptr<User> Chat_Server::getUserByName(const std::string& name) const {		// указатель на имя пользователя
-	for (auto& user : UserSpisok) {
+	/*for (auto& user : UserSpisok) {
 		if (name == user.getName())
 			return std::make_shared<User>(user);
 	}
-	return nullptr;
+	return nullptr;*/
 }
 
-std::shared_ptr<User> Chat_Server::getCurrentUser() const {
+char* Chat_Server::getCurrentUser() const {
 	return currentUser;
 }
 
@@ -77,10 +81,10 @@ void Chat_Server::SignIn() {								//вход по логину и паролю
 			char* b = sock.receive_data();
 			switch (b[0]) {
 			case '1':
-				if (messageList.empty())
-					sock.send_data((char*)"У вас еще нет входящих сообщений!\n");
-				else
-					ShowMessage();							//прочитать сообщения	
+				//if (messageList.empty())
+				//	sock.send_data((char*)"У вас еще нет входящих сообщений!\n");
+				//else
+				//	ShowMessage();							//прочитать сообщения	
 				break;
 			case '2':										//написать сообщение
 				setAddMessage();
@@ -118,20 +122,19 @@ void Chat_Server::ShowMessage() {									//прочитать сообщения
 	}
 }
 
-bool Chat_Server::FindName(const std::string& name) {								 //метод проверки имени
-	for (std::vector<User>::iterator it = UserSpisok.begin(); it != UserSpisok.end(); ++it) {
-		if (it->getName() == name)
-			return true;
-	}
-	return false;
-}
+
 
 bool Chat_Server::FindLogin(const std::string& login) {								//метод проверки логина
-	for (std::vector<User>::iterator it = UserSpisok.begin(); it != UserSpisok.end(); ++it) {
-		if (it->getLogin() == login)
-			return true;
+	db.mysql_start();
+	std::string log("SELECT login FROM user_spisok WHERE login = \"" + login + "\"");
+	mysql_query(&db.mysql, log.c_str()); //Делаем запрос к таблице
+
+	if (db.res = mysql_store_result(&db.mysql)) {
+		if (mysql_num_rows(db.res) == 0) //cout << "нет логина" << endl;
+			return false;
 	}
-	return false;
+	return true;
+	mysql_close(&db.mysql);
 }
 
 void Chat_Server::NewUser() {					//метод создания нового пользователя
@@ -141,12 +144,10 @@ void Chat_Server::NewUser() {					//метод создания нового пользователя
 	bool n = true;
 	while (n) {
 		sock.send_data((char*)"end_receive");
-		name = sock.receive_data();
-
-		/*if (name == " ") {sock.send_data("Вы не ввели имя"); }*/
-		/*std::cin >> name;*/
-		if (name == "all" || FindName(name))
-			sock.send_data((char*)"Данное имя уже занято выберите другое!\nВведите имя:");
+		name = (char*)sock.receive_data();
+		std::cout << name << std::endl;
+		if (name == "all")
+			sock.send_data((char*)"Данное имя уже занято выберите другое!\nВведите имя: ");
 		else n = false;
 	}
 	bool l = true;
@@ -154,7 +155,7 @@ void Chat_Server::NewUser() {					//метод создания нового пользователя
 		sock.send_data((char*)"Логин: ");
 		sock.send_data((char*)"end_receive");
 		login = sock.receive_data();
-
+		std::cout << login << std::endl;
 		if (login == "all" || FindLogin(login))
 			sock.send_data((char*)"Данный логин уже занят выберите другой!\nВведите логин: ");
 		else l = false;
@@ -163,134 +164,225 @@ void Chat_Server::NewUser() {					//метод создания нового пользователя
 	sock.send_data((char*)"Пароль: ");
 	sock.send_data((char*)"end_receive");
 	password = sock.receive_data();
-
-	User user(name, login, sha1((char*)password.data(), password.length()));				//создаем объект класа User
-	UserSpisok.push_back(user);						// добавляем пользователя в массив
-	currentUser = std::make_shared<User>(user);		//создаем указатель на текущего пользователя
+	
+	db.mysql_start();
+	unsigned int* _password = new unsigned int[5];
+	std::string _pw_str[5];
+	_password = sha1((char*)(password.data()), password.length());
+	for (size_t i = 0; i < 5; i++)	{
+		_pw_str[i] = std::to_string(_password[i]);
+	}
+	
+	std::string pass(_pw_str[0] + " " + _pw_str[1].c_str() + " " + _pw_str[2] + " " + _pw_str[3] + " " + _pw_str[4]);
+	std::string usr_query("INSERT INTO user_spisok(id, name, login, password) VALUES (default, \"" + name + "\", \"" + login + "\", \"" + pass + "\")");
+	mysql_query(&db.mysql, usr_query.c_str());
 	sock.send_data((char*)"Пользователь зарегистрирован!\n\n");
+
+	mysql_close(&db.mysql);
 }
 
 bool Chat_Server::UserSearch(const std::string& login, const std::string& password) {	//метод поиска пользователя по логину и паролю	
-	int i = 0;
-	while (i < UserSpisok.size()) {
-		for (auto& user : UserSpisok) {
-			if (login == user.getLogin() && memcmp(user.getPassword(), sha1((char*)password.data(), password.length()), SHA1HASHLENGTHBYTES) == 0) {
-				currentUser = getUserByLogin(login);   //указатель на текущего пользователя
+	db.mysql_start();
+	std::string log("SELECT * FROM user_spisok WHERE login = \"" + login + "\"");
+	mysql_query(&db.mysql, log.c_str()); //Делаем запрос к таблице
 
-				std::string cur = currentUser->getName();
-				char* c = const_cast<char*>(cur.c_str());
+	unsigned int* _password = new unsigned int[5];
+	std::string _pw_str[5];
+	_password = sha1((char*)(password.data()), password.length());
+	for (size_t i = 0; i < 5; i++){
+		_pw_str[i] = std::to_string(_password[i]);
+	}
+	std::string pass(_pw_str[0] + " " + _pw_str[1].c_str() + " " + _pw_str[2] + " " + _pw_str[3] + " " + _pw_str[4]);
 
-				sock.send_data((char*)"\nПользователь: ");
-				sock.send_data(c);
-				return true;
+	if (db.res = mysql_store_result(&db.mysql)) {
+		while (db.row = mysql_fetch_row(db.res)) {
+			for (int i = 0; i < mysql_num_fields(db.res); i++) {
+				if (db.row[3] == pass) {
+					currentUser = db.row[1];  //указатель на текущего пользователя
+					id_currentUser = db.row[0];
+					sock.send_data((char*)"\nПользователь: ");
+					sock.send_data((char*)currentUser);
+					return true;
+				}
 			}
-			else { ++i; }
 		}
 	}
-	return false;
+		return false;
+		mysql_close(&db.mysql);
 }
 
 void Chat_Server::PrintNamesUsers() {				    //метод получения списка зарегестрированных пользователей
-	for (std::vector<User>::iterator it = UserSpisok.begin(); it != UserSpisok.end(); ++it) {
-		std::string str = it->getName();
-		char* c = const_cast<char*>(str.c_str());
-		sock.send_data(c);
-		sock.send_data((char*)"\n");
+	db.mysql_start();
+	mysql_query(&db.mysql, "SELECT name FROM user_spisok"); //Делаем запрос к таблице
+
+	//Выводим все что есть в базе через цикл
+	if (db.res = mysql_store_result(&db.mysql)){
+		while (db.row = mysql_fetch_row(db.res)){				
+			for (size_t i = 0; i < mysql_num_fields(db.res); i++){
+				sock.send_data(db.row[i]);
+				}
+			sock.send_data((char*)"\n");
+			}
 	}
+	mysql_close(&db.mysql);
 }
 
 int Chat_Server::FindUserinUserSpisok(const std::string& name) {	//метод проверяет корректно ли введено имя
-	for (std::vector<User>::iterator it = UserSpisok.begin(); it != UserSpisok.end(); ++it) {
+	/*for (std::vector<User>::iterator it = UserSpisok.begin(); it != UserSpisok.end(); ++it) {
 		if (it->getName() == name)
 			return 0;
 	}
-	return -1;
+	return -1;*/
 }
 
 void Chat_Server::setPrivateShowChat() {				//метод чтения личных сообщений
-	std::string from;
-	std::string to;
+	//std::string from;
+	//std::string to;
 
-	sock.send_data((char*)"--------------ЧАТ--------------\n");
-	for (auto& message : messageList) {
-		if (currentUser->getName() == message.getFromMessage() || currentUser->getName() == message.getToMessage()) {//если текущий пользователь
-			from = (currentUser->getName() == message.getFromMessage()) ? "Меня" : message.getFromMessage();
+	//sock.send_data((char*)"--------------ЧАТ--------------\n");
+	//for (auto& message : messageList) {
+	//	if (currentUser->getName() == message.getFromMessage() || currentUser->getName() == message.getToMessage()) {//если текущий пользователь
+	//		from = (currentUser->getName() == message.getFromMessage()) ? "Меня" : message.getFromMessage();
 
-			to = (currentUser->getName() == message.getToMessage()) ? "Мне" : message.getToMessage();
-			//если текущее имя равно to, то отправляем сообщение самому себе, если нет, то получаем имя пользователя и присваиваем его значение полю to
+	//		to = (currentUser->getName() == message.getToMessage()) ? "Мне" : message.getToMessage();
+	//		//если текущее имя равно to, то отправляем сообщение самому себе, если нет, то получаем имя пользователя и присваиваем его значение полю to
 
-			if (message.getToMessage() != "all") {
-				sock.send_data((char*)"от ");
-				std::string strf = from;
-				char* fr = const_cast<char*>(strf.c_str());
-				sock.send_data(fr);
-				sock.send_data((char*)" кому ");
-				std::string strt = to;
-				char* t = const_cast<char*>(strt.c_str());
-				sock.send_data(t);
-				sock.send_data((char*)": ");
-				std::string strm = message.getText();
-				char* mes = const_cast<char*>(strm.c_str());
-				sock.send_data(mes);
-				sock.send_data((char*)"\n");
-			}
-		}
-	}
-	sock.send_data((char*)"-------------------------------");
+	//		if (message.getToMessage() != "all") {
+	//			sock.send_data((char*)"от ");
+	//			std::string strf = from;
+	//			char* fr = const_cast<char*>(strf.c_str());
+	//			sock.send_data(fr);
+	//			sock.send_data((char*)" кому ");
+	//			std::string strt = to;
+	//			char* t = const_cast<char*>(strt.c_str());
+	//			sock.send_data(t);
+	//			sock.send_data((char*)": ");
+	//			std::string strm = message.getText();
+	//			char* mes = const_cast<char*>(strm.c_str());
+	//			sock.send_data(mes);
+	//			sock.send_data((char*)"\n");
+	//		}
+	//	}
+	//}
+	//sock.send_data((char*)"-------------------------------");
 }
 
 void Chat_Server::setAllShowChat() {							// метод чтения общих сообщений
-	std::string from;
+	//std::string from;
 
-	sock.send_data((char*)"-----------ОБЩИЙ ЧАТ-----------\n");
-	for (auto& message : messageList) {
-		if (currentUser->getName() == message.getFromMessage() || currentUser->getName() == message.getToMessage() || message.getToMessage() == "all") {//если текущий пользователь
-			from = (currentUser->getName() == message.getFromMessage()) ? "Меня" : message.getFromMessage();
-			if (message.getToMessage() == "all") { 						//сообщение всем пользователям
-				sock.send_data((char*)"от ");
-				std::string strf = from;
-				char* fr = const_cast<char*>(strf.c_str());
-				sock.send_data(fr);
-				sock.send_data((char*)": ");
-				std::string strm = message.getText();
-				char* mes = const_cast<char*>(strm.c_str());
-				sock.send_data(mes);
-				sock.send_data((char*)"\n");
-			}
-		}
-	}
-	sock.send_data((char*)"-------------------------------\n");
+	//sock.send_data((char*)"-----------ОБЩИЙ ЧАТ-----------\n");
+	//for (auto& message : messageList) {
+	//	if (currentUser->getName() == message.getFromMessage() || currentUser->getName() == message.getToMessage() || message.getToMessage() == "all") {//если текущий пользователь
+	//		from = (currentUser->getName() == message.getFromMessage()) ? "Меня" : message.getFromMessage();
+	//		if (message.getToMessage() == "all") { 						//сообщение всем пользователям
+	//			sock.send_data((char*)"от ");
+	//			std::string strf = from;
+	//			char* fr = const_cast<char*>(strf.c_str());
+	//			sock.send_data(fr);
+	//			sock.send_data((char*)": ");
+	//			std::string strm = message.getText();
+	//			char* mes = const_cast<char*>(strm.c_str());
+	//			sock.send_data(mes);
+	//			sock.send_data((char*)"\n");
+	//		}
+	//	}
+	//}
+	//sock.send_data((char*)"-------------------------------\n");
 }
 
 void Chat_Server::setAddMessage() {						    	//метод добавления сообщения в массив
-	std::string inputName;
-	std::string message;
+	std::string id_from, id_to;
+	std::chrono::system_clock::time_point value_t = std::chrono::system_clock::now();
+	time_t timestamp = std::chrono::system_clock::to_time_t(value_t);
+	const tm* ltm = std::localtime(&timestamp);
+
+	char mbstr[15];
+	std::strftime(mbstr, 15, "%Y-%m-%d", ltm);
+	std::cout << mbstr << std::endl;
+
 	sock.send_data((char*)"\nВведите имя кому отправить сообщение:\n");
 	PrintNamesUsers();									  //выводим список пользователей
 	sock.send_data((char*)"all - отправить всем\n");
 	sock.send_data((char*)"end_receive");
-	inputName = sock.receive_data();
+	std::string inputName = sock.receive_data();
+	std::string from = currentUser;
+	//std::string to = inputName;
+
+	sock.send_data((char*)"\nВведите текст сообщения: \n");
+		sock.send_data((char*)"end_receive");
+		std::string text = sock.receive_data();
+	db.mysql_start();
+std:string id_f("SELECT id FROM user_spisok WHERE name = \"" + from + "\" ");
+		mysql_query(&db.mysql, id_f.c_str()); //Делаем запрос к таблице
+		if (db.res = mysql_store_result(&db.mysql)) {
+			while (db.row = mysql_fetch_row(db.res)) {
+				for (size_t i = 0; i < mysql_num_fields(db.res); i++) {
+					id_from = db.row[i];
+				}
+			}
+		}
 
 	if (inputName == "all") {							  //отправка всем пользователям
-		sock.send_data((char*)"\nВведите текст сообщения: \n");
-		sock.send_data((char*)"end_receive");
-		message = sock.receive_data();
-		messageList.push_back(Message(currentUser->getName(), "all", message));
-		sock.send_data((char*)"Сообщение разослано всем пользователям!\n");
+		
+	
+		mysql_query(&db.mysql, "SELECT * FROM message"); //Делаем запрос к таблице
+		std::string mes("INSERT INTO message(id, id_from_name, id_to_name, data, status, text) VALUES (default, \""+id_from+"\", '3', \""+ mbstr+"\", '0', \""+text+"\")");
+		mysql_query(&db.mysql, mes.c_str());
 	}
-	else {													//отправка личных сообщений
-		int t = -1;
-		t = FindUserinUserSpisok(inputName);
-		if (t == -1) {
-			sock.send_data((char*)"Пользователь с данным именем не найден\n");
-		}
-		else {
-			sock.send_data((char*)"Введите текст сообщения: \n");
-			sock.send_data((char*)"end_receive");
-			message = sock.receive_data();
-			messageList.push_back(Message(currentUser->getName(), inputName, message));
+	else {
+	//std:string id_t("SELECT id FROM user_spisok WHERE name = \"" + inputName + "\" ");
+	//	mysql_query(&db.mysql, id_t.c_str()); //Делаем запрос к таблице
+	//	if (db.res = mysql_store_result(&db.mysql)) {
+	//		while (db.row = mysql_fetch_row(db.res)) {
+	//			for (size_t i = 0; i < mysql_num_fields(db.res); i++) {
+	//				id_to = db.row[i];
+	//			}
+	//		}
+	//	}
+	
+		id_to = idToMessage(inputName);
+		
+		mysql_query(&db.mysql, "SELECT * FROM message"); //Делаем запрос к таблице
+		std::string mes("INSERT INTO message(id, id_from_name, id_to_name, data, status, text) VALUES (default, \""+id_from+"\", \""+id_to+"\", \""+mbstr+"\", '0', \""+text+"\")");
+		std::cout << mes << std::endl;
+		mysql_query(&db.mysql, mes.c_str());
+	}
+		mysql_close(&db.mysql);
+		//	messageList.push_back(Message(currentUser->getName(), "all", message, timestamp));
+		//	sock.send_data((char*)"Сообщение разослано всем пользователям!\n");
+		//}
+		//else {													//отправка личных сообщений
+		//	int t = -1;
+		//	t = FindUserinUserSpisok(inputName);
+		//	if (t == -1) {
+		//		sock.send_data((char*)"Пользователь с данным именем не найден\n");
+		//	}
+		//	else {
+		//		sock.send_data((char*)"Введите текст сообщения: \n");
+		//		sock.send_data((char*)"end_receive");
+		//		message = sock.receive_data();
+		//		messageList.push_back(Message(currentUser->getName(), inputName, message,timestamp));
+		//	}
+		//}
+	
+}
+
+std::string Chat_Server::idToMessage(std::string& name)
+{
+	//std::string id_to;
+
+std:string id_t("SELECT id FROM user_spisok WHERE name = \"" + name + "\" ");
+	mysql_query(&db.mysql, id_t.c_str()); //Делаем запрос к таблице
+	if (db.res = mysql_store_result(&db.mysql)) {
+		while (db.row = mysql_fetch_row(db.res)) {
+			for (size_t i = 0; i < mysql_num_fields(db.res); i++) {
+				 char* id_to = db.row[i];
+return id_to;
+
+			}
 		}
 	}
+	
 }
 
 void Chat_Server::currrenNull() {
