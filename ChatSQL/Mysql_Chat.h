@@ -10,7 +10,7 @@ class Mysql_Chat{
 private:
 
 public:
-    MYSQL mysql; // Дескриптор соединения c MySql
+    MYSQL mysql; // Р”РµСЃРєСЂРёРїС‚РѕСЂ СЃРѕРµРґРёРЅРµРЅРёСЏ c MySql
     MYSQL_RES* res;
     MYSQL_ROW row;
     Mysql_Chat() = default;
