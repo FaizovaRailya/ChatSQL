@@ -6,13 +6,13 @@
 #include <sql.h>
 
 void Mysql_Chat::mysql_start(){
-    mysql_init(&mysql); // Получаем дескриптор соединения
+    mysql_init(&mysql); // РџРѕР»СѓС‡Р°РµРј РґРµСЃРєСЂРёРїС‚РѕСЂ СЃРѕРµРґРёРЅРµРЅРёСЏ
 
-    if (&mysql == NULL) {       // Если дескриптор не получен — выводим сообщение об ошибке
+    if (&mysql == NULL) {       // Р•СЃР»Рё РґРµСЃРєСЂРёРїС‚РѕСЂ РЅРµ РїРѕР»СѓС‡РµРЅ вЂ” РІС‹РІРѕРґРёРј СЃРѕРѕР±С‰РµРЅРёРµ РѕР± РѕС€РёР±РєРµ
         std::cout << "Error: can't create MySQL-descriptor" << std::endl;
     }
 
-    if (!mysql_real_connect(&mysql, db_address, db_login, db_pw, db_name, 0, NULL, 0)) {        // Подключаемся к серверу
+    if (!mysql_real_connect(&mysql, db_address, db_login, db_pw, db_name, 0, NULL, 0)) {        // РџРѕРґРєР»СЋС‡Р°РµРјСЃСЏ Рє СЃРµСЂРІРµСЂСѓ
         std::cout << "Error: can't connect to database " << mysql_error(&mysql) << std::endl;
     }
     else {
