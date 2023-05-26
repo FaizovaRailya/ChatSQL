@@ -6,20 +6,19 @@
 #include <chrono>
 #pragma warning(disable : 4996)
 
-
 void Chat_Server::Menu() {
 	bool f = true;
 	while (f) {
-		sock.send_data((char*)"------Введите действие:------\n1 - вход\n2 - регистрация\n0 - выход\n");
+		sock.send_data((char*)"------Р’РІРµРґРёС‚Рµ РґРµР№СЃС‚РІРёРµ:------\n1 - РІС…РѕРґ\n2 - СЂРµРіРёСЃС‚СЂР°С†РёСЏ\n0 - РІС‹С…РѕРґ\n");
 		sock.send_data((char*)"end_receive");
 		char* choise = sock.receive_data();
 		switch (choise[0]) {
 		case '1':
-			SignIn();								//вход по логину и паролю
+			SignIn();			//РІС…РѕРґ РїРѕ Р»РѕРіРёРЅСѓ Рё РїР°СЂРѕР»СЋ
 			break;
-		case '2':									// регистрация нового пользователя
+		case '2':				// СЂРµРіРёСЃС‚СЂР°С†РёСЏ РЅРѕРІРѕРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
 			try {
-				NewUser();					//вызываем метод добавления нового пользователя			
+				NewUser();		//РІС‹Р·С‹РІР°РµРј РјРµС‚РѕРґ РґРѕР±Р°РІР»РµРЅРёСЏ РЅРѕРІРѕРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ			
 			}
 			catch (std::exception& e) {
 				std::cout << e.what() << std::endl;
@@ -32,78 +31,77 @@ void Chat_Server::Menu() {
 			f = false;
 			break;
 		default:
-			sock.send_data((char*)"Неверный ВВОД!\n");
+			sock.send_data((char*)"РќРµРІРµСЂРЅС‹Р№ Р’Р’РћР”!\n");
 			break;
 		}
 	}
 	std::cout << "Chat session terminated! See you again!" << std::endl;
 }
 
-void Chat_Server::SignIn() {								//вход по логину и паролю
+void Chat_Server::SignIn() {					//РІС…РѕРґ РїРѕ Р»РѕРіРёРЅСѓ Рё РїР°СЂРѕР»СЋ
 	std::string log, pas;
-	sock.send_data((char*)"----Введите----\nЛогин: ");
+	sock.send_data((char*)"----Р’РІРµРґРёС‚Рµ----\nР›РѕРіРёРЅ: ");
 	sock.send_data((char*)"end_receive");
 	log = sock.receive_data();
 
-	sock.send_data((char*)"Пароль: ");
+	sock.send_data((char*)"РџР°СЂРѕР»СЊ: ");
 	sock.send_data((char*)"end_receive");
 	pas = sock.receive_data();
 
 	if (UserSearch(log, pas)) {
 		bool f1 = true;
 		while (f1) {
-			sock.send_data((char*)"\n------Введите действиe:------\n1 - Прочитать сообщениe\n2 - Написать сообщение\n0 - Назад\n");
+			sock.send_data((char*)"\n------Р’РІРµРґРёС‚Рµ РґРµР№СЃС‚РІРёe:------\n1 - РџСЂРѕС‡РёС‚Р°С‚СЊ СЃРѕРѕР±С‰РµРЅРёe\n2 - РќР°РїРёСЃР°С‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ\n0 - РќР°Р·Р°Рґ\n");
 
 			sock.send_data((char*)"end_receive");
 			char* b = sock.receive_data();
 			switch (b[0]) {
 			case '1':
-				ShowMessage();								//прочитать сообщения	
+				ShowMessage();			//РїСЂРѕС‡РёС‚Р°С‚СЊ СЃРѕРѕР±С‰РµРЅРёСЏ	
 				break;
-			case '2':										//написать сообщение
+			case '2':				//РЅР°РїРёСЃР°С‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ
 				setAddMessage();
 				break;
-			case '0':										//назад
-				//currrenNull();
+			case '0':				//РЅР°Р·Р°Рґ
 				f1 = false;
 				break;
 			default:
-				sock.send_data((char*)"Неверный ВВОД!\n");
+				sock.send_data((char*)"РќРµРІРµСЂРЅС‹Р№ Р’Р’РћР”!\n");
 				break;
 			}
 		}
 	}
 	else
-		sock.send_data((char*)"\nНеверный логин или пароль!!!\n");
+		sock.send_data((char*)"\nРќРµРІРµСЂРЅС‹Р№ Р»РѕРіРёРЅ РёР»Рё РїР°СЂРѕР»СЊ!!!\n");
 }
 
-void Chat_Server::ShowMessage() {									//прочитать сообщения
-	sock.send_data((char*)"\n------Введите действиe:------\n1 - Личные не прочитанные\n2 - Личные \n3 - Общие\n0 - Назад\n");
+void Chat_Server::ShowMessage() {			//РїСЂРѕС‡РёС‚Р°С‚СЊ СЃРѕРѕР±С‰РµРЅРёСЏ
+	sock.send_data((char*)"\n------Р’РІРµРґРёС‚Рµ РґРµР№СЃС‚РІРёe:------\n1 - Р›РёС‡РЅС‹Рµ РЅРµ РїСЂРѕС‡РёС‚Р°РЅРЅС‹Рµ\n2 - Р›РёС‡РЅС‹Рµ \n3 - РћР±С‰РёРµ\n0 - РќР°Р·Р°Рґ\n");
 	sock.send_data((char*)"end_receive");
 	char* d = sock.receive_data();
 
 	switch (d[0]) {
 	case '1':
-		setUnreadPrivateShowChat();   //вызываем метод вывода не прочитанных личных сообщений  
+		setUnreadPrivateShowChat();   //РІС‹Р·С‹РІР°РµРј РјРµС‚РѕРґ РІС‹РІРѕРґР° РЅРµ РїСЂРѕС‡РёС‚Р°РЅРЅС‹С… Р»РёС‡РЅС‹С… СЃРѕРѕР±С‰РµРЅРёР№  
 		break;
 	case '2':
-		setPrivateShowChat();		//вызываем метод вывода личных сообщений 
+		setPrivateShowChat();	      //РІС‹Р·С‹РІР°РµРј РјРµС‚РѕРґ РІС‹РІРѕРґР° Р»РёС‡РЅС‹С… СЃРѕРѕР±С‰РµРЅРёР№ 
 		break;
 	case '3':
-		setAllShowChat();		 //вызываем метод вывода общих сообщений
+		setAllShowChat();	      //РІС‹Р·С‹РІР°РµРј РјРµС‚РѕРґ РІС‹РІРѕРґР° РѕР±С‰РёС… СЃРѕРѕР±С‰РµРЅРёР№
 		break;
 	case '0':
 		break;
 	default:
-		sock.send_data((char*)"Неверный ВВОД!\n");
+		sock.send_data((char*)"РќРµРІРµСЂРЅС‹Р№ Р’Р’РћР”!\n");
 		break;
 	}
 }
 
-bool Chat_Server::FindLogin(const std::string& login) {								//метод проверки логина
+bool Chat_Server::FindLogin(const std::string& login) {								//РјРµС‚РѕРґ РїСЂРѕРІРµСЂРєРё Р»РѕРіРёРЅР°
 	db.mysql_start();
 	std::string log("SELECT login FROM user_spisok WHERE login = \"" + login + "\"");
-	mysql_query(&db.mysql, log.c_str()); //Делаем запрос к таблице
+	mysql_query(&db.mysql, log.c_str()); //Р”РµР»Р°РµРј Р·Р°РїСЂРѕСЃ Рє С‚Р°Р±Р»РёС†Рµ
 
 	if (db.res = mysql_store_result(&db.mysql)) {
 		if (mysql_num_rows(db.res) == 0) 
@@ -113,30 +111,30 @@ bool Chat_Server::FindLogin(const std::string& login) {								//метод проверки 
 	mysql_close(&db.mysql);
 }
 
-void Chat_Server::NewUser() {					//метод создания нового пользователя
+void Chat_Server::NewUser() {					//РјРµС‚РѕРґ СЃРѕР·РґР°РЅРёСЏ РЅРѕРІРѕРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
 	std::string name, login, password;
 
-	sock.send_data((char*)"---- Введите данные для регистрации ----\nИмя: ");
+	sock.send_data((char*)"---- Р’РІРµРґРёС‚Рµ РґР°РЅРЅС‹Рµ РґР»СЏ СЂРµРіРёСЃС‚СЂР°С†РёРё ----\nРРјСЏ: ");
 	bool n = true;
 	while (n) {
 		sock.send_data((char*)"end_receive");
 		name = (char*)sock.receive_data();
 		std::cout << name << std::endl;
 		if (name == "all")
-			sock.send_data((char*)"Данное имя уже занято выберите другое!\nВведите имя: ");
+			sock.send_data((char*)"Р”Р°РЅРЅРѕРµ РёРјСЏ СѓР¶Рµ Р·Р°РЅСЏС‚Рѕ РІС‹Р±РµСЂРёС‚Рµ РґСЂСѓРіРѕРµ!\nР’РІРµРґРёС‚Рµ РёРјСЏ: ");
 		else n = false;
 	}
 	bool l = true;
 	while (l) {
-		sock.send_data((char*)"Логин: ");
+		sock.send_data((char*)"Р›РѕРіРёРЅ: ");
 		sock.send_data((char*)"end_receive");
 		login = sock.receive_data();
 		std::cout << login << std::endl;
 		if (login == "all" || FindLogin(login))
-			sock.send_data((char*)"Данный логин уже занят выберите другой!\nВведите логин: ");
+			sock.send_data((char*)"Р”Р°РЅРЅС‹Р№ Р»РѕРіРёРЅ СѓР¶Рµ Р·Р°РЅСЏС‚ РІС‹Р±РµСЂРёС‚Рµ РґСЂСѓРіРѕР№!\nР’РІРµРґРёС‚Рµ Р»РѕРіРёРЅ: ");
 		else l = false;
 	}
-	sock.send_data((char*)"Пароль: ");
+	sock.send_data((char*)"РџР°СЂРѕР»СЊ: ");
 	sock.send_data((char*)"end_receive");
 	password = sock.receive_data();
 	
@@ -151,15 +149,15 @@ void Chat_Server::NewUser() {					//метод создания нового пользователя
 	std::string pass(_pw_str[0] + " " + _pw_str[1].c_str() + " " + _pw_str[2] + " " + _pw_str[3] + " " + _pw_str[4]);
 	std::string usr_query("INSERT INTO user_spisok(id, name, login, password) VALUES (default, \"" + name + "\", \"" + login + "\", \"" + pass + "\")");
 	mysql_query(&db.mysql, usr_query.c_str());
-	sock.send_data((char*)"Пользователь зарегистрирован!\n\n");
+	sock.send_data((char*)"РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ Р·Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°РЅ!\n\n");
 
 	mysql_close(&db.mysql);
 }
 
-bool Chat_Server::UserSearch(const std::string& login, const std::string& password) {	//метод поиска пользователя по логину и паролю	
+bool Chat_Server::UserSearch(const std::string& login, const std::string& password) {	//РјРµС‚РѕРґ РїРѕРёСЃРєР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РїРѕ Р»РѕРіРёРЅСѓ Рё РїР°СЂРѕР»СЋ	
 	db.mysql_start();
 	std::string log("SELECT * FROM user_spisok WHERE login = \"" + login + "\"");
-	mysql_query(&db.mysql, log.c_str()); //Делаем запрос к таблице
+	mysql_query(&db.mysql, log.c_str()); //Р”РµР»Р°РµРј Р·Р°РїСЂРѕСЃ Рє С‚Р°Р±Р»РёС†Рµ
 
 	unsigned int* _password = new unsigned int[5];
 	std::string _pw_str[5];
@@ -173,9 +171,9 @@ bool Chat_Server::UserSearch(const std::string& login, const std::string& passwo
 		while (db.row = mysql_fetch_row(db.res)) {
 			for (int i = 0; i < mysql_num_fields(db.res); i++) {
 				if (db.row[3] == pass) {
-					currentUser = db.row[1];  //указатель на текущего пользователя
-					id_currentUser = db.row[0];
-					sock.send_data((char*)"\nПользователь: ");
+					currentUser = db.row[1];    //СѓРєР°Р·Р°С‚РµР»СЊ РЅР° С‚РµРєСѓС‰РµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+					id_currentUser = db.row[0]; // id С‚РµРєСѓС‰РµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+					sock.send_data((char*)"\nРџРѕР»СЊР·РѕРІР°С‚РµР»СЊ: ");
 					sock.send_data((char*)currentUser);
 					return true;
 				}
@@ -186,9 +184,9 @@ bool Chat_Server::UserSearch(const std::string& login, const std::string& passwo
 		mysql_close(&db.mysql);
 }
 
-void Chat_Server::PrintNamesUsers() {				    //метод получения списка зарегестрированных пользователей
+void Chat_Server::PrintNamesUsers() {				    //РјРµС‚РѕРґ РїРѕР»СѓС‡РµРЅРёСЏ СЃРїРёСЃРєР° Р·Р°СЂРµРіРµСЃС‚СЂРёСЂРѕРІР°РЅРЅС‹С… РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№
 	db.mysql_start();
-	mysql_query(&db.mysql, "SELECT name FROM user_spisok"); //Делаем запрос к таблице
+	mysql_query(&db.mysql, "SELECT name FROM user_spisok WHERE name != 'all'"); //Р”РµР»Р°РµРј Р·Р°РїСЂРѕСЃ Рє С‚Р°Р±Р»РёС†Рµ
 	if (db.res = mysql_store_result(&db.mysql)){
 		while (db.row = mysql_fetch_row(db.res)){				
 			for (size_t i = 0; i < mysql_num_fields(db.res); i++){
@@ -200,9 +198,9 @@ void Chat_Server::PrintNamesUsers() {				    //метод получения списка зарегестри
 	mysql_close(&db.mysql);
 }
 
-bool Chat_Server::FindUserinUserSpisok(const std::string& name) {	//метод проверяет корректно ли введено имя	
+bool Chat_Server::FindUserinUserSpisok(const std::string& name) {	//РјРµС‚РѕРґ РїСЂРѕРІРµСЂСЏРµС‚ РєРѕСЂСЂРµРєС‚РЅРѕ Р»Рё РІРІРµРґРµРЅРѕ РёРјСЏ	
 	db.mysql_start();
-	mysql_query(&db.mysql, "SELECT name FROM user_spisok"); //Делаем запрос к таблице
+	mysql_query(&db.mysql, "SELECT name FROM user_spisok"); //Р”РµР»Р°РµРј Р·Р°РїСЂРѕСЃ Рє С‚Р°Р±Р»РёС†Рµ
 	if (db.res = mysql_store_result(&db.mysql)) {
 		while (db.row = mysql_fetch_row(db.res)) {
 			for (size_t i = 0; i < mysql_num_fields(db.res); i++) {
@@ -216,21 +214,21 @@ bool Chat_Server::FindUserinUserSpisok(const std::string& name) {	//метод провер
 	mysql_close(&db.mysql);
 }
 
-void Chat_Server::setUnreadPrivateShowChat() {				//метод чтения непрочитанных личных сообщений
+void Chat_Server::setUnreadPrivateShowChat() {			//РјРµС‚РѕРґ С‡С‚РµРЅРёСЏ РЅРµРїСЂРѕС‡РёС‚Р°РЅРЅС‹С… Р»РёС‡РЅС‹С… СЃРѕРѕР±С‰РµРЅРёР№
 	db.mysql_start();
 	std::string id_to = id_currentUser;
-	sock.send_data((char*)"--------------ЧАТ--------------\n");
+	sock.send_data((char*)"--------------Р§РђРў--------------\n");
 	std::string mess("SELECT name, text FROM message JOIN user_spisok ON message.id_from_name = user_spisok.id WHERE status = '0' AND id_to_name = \"" + id_to + "\"");
-	mysql_query(&db.mysql, mess.c_str()); //Делаем запрос к таблице
+	mysql_query(&db.mysql, mess.c_str()); //Р”РµР»Р°РµРј Р·Р°РїСЂРѕСЃ Рє С‚Р°Р±Р»РёС†Рµ
 	
 	if (db.res = mysql_store_result(&db.mysql)) {	
 		if (mysql_num_rows(db.res) == 0){
-			sock.send_data((char*)"У Вас нет не прочитанных сообщений!\n");
+			sock.send_data((char*)"РЈ Р’Р°СЃ РЅРµС‚ РЅРµ РїСЂРѕС‡РёС‚Р°РЅРЅС‹С… СЃРѕРѕР±С‰РµРЅРёР№!\n");
 		}
 		else {
 			while (db.row = mysql_fetch_row(db.res)) {
 				for (size_t i = 1; i < mysql_num_fields(db.res); ++i) {
-					sock.send_data((char*)"От ");
+					sock.send_data((char*)"РћС‚ ");
 					sock.send_data(db.row[0]);
 					sock.send_data((char*)": ");
 					sock.send_data(db.row[1]);
@@ -240,51 +238,50 @@ void Chat_Server::setUnreadPrivateShowChat() {				//метод чтения непрочитанных л
 		}
 	}
 	std::string mes("UPDATE message JOIN user_spisok ON message.id_from_name = user_spisok.id SET status = '1' WHERE status = '0' AND id_to_name = \"" + id_to + "\"");
-	mysql_query(&db.mysql, mes.c_str()); //Делаем запрос к таблице
+	mysql_query(&db.mysql, mes.c_str()); //Р”РµР»Р°РµРј Р·Р°РїСЂРѕСЃ Рє С‚Р°Р±Р»РёС†Рµ
 
 	sock.send_data((char*)"-------------------------------");
 	mysql_close(&db.mysql);
 }
 
-void Chat_Server::setPrivateShowChat()				//метод чтения личных сообщений
-{
+void Chat_Server::setPrivateShowChat(){				//РјРµС‚РѕРґ С‡С‚РµРЅРёСЏ Р»РёС‡РЅС‹С… СЃРѕРѕР±С‰РµРЅРёР№
 	db.mysql_start();
 	std::string id_to = id_currentUser;
-	sock.send_data((char*)"--------------ЧАТ--------------\n");
+	sock.send_data((char*)"--------------Р§РђРў--------------\n");
 	std::string mesp("SELECT name, text FROM message RIGHT JOIN user_spisok on message.id_from_name = user_spisok.id WHERE id_to_name = \"" + id_to + "\" OR id_from_name = \"" + id_to + "\" ORDER BY data");
-	
-	
-	std::cout << mesp << std::endl;
-
-
-	mysql_query(&db.mysql, mesp.c_str()); //Делаем запрос к таблице
+	mysql_query(&db.mysql, mesp.c_str()); //Р”РµР»Р°РµРј Р·Р°РїСЂРѕСЃ Рє С‚Р°Р±Р»РёС†Рµ
 	if (db.res = mysql_store_result(&db.mysql)) {
-		while (db.row = mysql_fetch_row(db.res)) {
-			for (size_t i = 1; i < mysql_num_fields(db.res); ++i) {
-				sock.send_data((char*)"От ");
-				sock.send_data(db.row[0]);
-				sock.send_data((char*)": ");
-				sock.send_data(db.row[1]);
-				sock.send_data((char*)"\n");
+		if (mysql_num_rows(db.res) == 0) {
+			sock.send_data((char*)"РЈ Р’Р°СЃ РЅРµС‚ СЃРѕРѕР±С‰РµРЅРёР№!\n");
+		}
+		else {
+			while (db.row = mysql_fetch_row(db.res)) {
+				for (size_t i = 1; i < mysql_num_fields(db.res); ++i) {
+					sock.send_data((char*)"РћС‚ ");
+					sock.send_data(db.row[0]);
+					sock.send_data((char*)": ");
+					sock.send_data(db.row[1]);
+					sock.send_data((char*)"\n");
+				}
 			}
 		}
 	}
 	std::string mes("UPDATE message JOIN user_spisok ON message.id_from_name = user_spisok.id SET status = '1' WHERE id_to_name = \"" + id_to + "\"");
-	mysql_query(&db.mysql, mes.c_str()); //Делаем запрос к таблице
+	mysql_query(&db.mysql, mes.c_str()); //Р”РµР»Р°РµРј Р·Р°РїСЂРѕСЃ Рє С‚Р°Р±Р»РёС†Рµ
 
 	sock.send_data((char*)"-------------------------------");
 	mysql_close(&db.mysql);
 }
 
-void Chat_Server::setAllShowChat() {							// метод чтения общих сообщений
+void Chat_Server::setAllShowChat() {							// РјРµС‚РѕРґ С‡С‚РµРЅРёСЏ РѕР±С‰РёС… СЃРѕРѕР±С‰РµРЅРёР№
 	db.mysql_start();
 	std::string id_to = id_currentUser;
-	sock.send_data((char*)"------------ОБЩИЙ ЧАТ------------\n");
-	mysql_query(&db.mysql, "SELECT name, text FROM message join user_spisok on message.id_from_name = user_spisok.id WHERE status = '0' AND id_to_name = '3'"); //Делаем запрос к таблице
+	sock.send_data((char*)"------------РћР‘Р©РР™ Р§РђРў------------\n");
+	mysql_query(&db.mysql, "SELECT name, text FROM message join user_spisok on message.id_from_name = user_spisok.id WHERE status = '0' AND id_to_name = '3'"); //Р”РµР»Р°РµРј Р·Р°РїСЂРѕСЃ Рє С‚Р°Р±Р»РёС†Рµ
 	if (db.res = mysql_store_result(&db.mysql)) {
 		while (db.row = mysql_fetch_row(db.res)) {
 			for (size_t i = 1; i < mysql_num_fields(db.res); ++i) {
-				sock.send_data((char*)"От ");
+				sock.send_data((char*)"РћС‚ ");
 
 				sock.send_data(db.row[0]);
 				sock.send_data((char*)": ");
@@ -297,7 +294,7 @@ void Chat_Server::setAllShowChat() {							// метод чтения общих сообщений
 	mysql_close(&db.mysql);
 }
 
-void Chat_Server::setAddMessage() {						    	//метод добавления сообщения в массив
+void Chat_Server::setAddMessage() {						    	//РјРµС‚РѕРґ РґРѕР±Р°РІР»РµРЅРёСЏ СЃРѕРѕР±С‰РµРЅРёСЏ РІ РјР°СЃСЃРёРІ
 	std::string id_from, id_to;
 	std::chrono::system_clock::time_point value_t = std::chrono::system_clock::now();
 	time_t timestamp = std::chrono::system_clock::to_time_t(value_t);
@@ -307,31 +304,31 @@ void Chat_Server::setAddMessage() {						    	//метод добавления сообщения в мас
 	std::strftime(mbstr, 15, "%Y-%m-%d", ltm);
 	std::cout << mbstr << std::endl;
 
-	sock.send_data((char*)"\nВведите имя кому отправить сообщение:\n");
-	PrintNamesUsers();									  //выводим список пользователей
-	sock.send_data((char*)"all - отправить всем\n");
+	sock.send_data((char*)"\nР’РІРµРґРёС‚Рµ РёРјСЏ РєРѕРјСѓ РѕС‚РїСЂР°РІРёС‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ:\n");
+	PrintNamesUsers();									  //РІС‹РІРѕРґРёРј СЃРїРёСЃРѕРє РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№
+	sock.send_data((char*)"all - РѕС‚РїСЂР°РІРёС‚СЊ РІСЃРµРј\n");
 	sock.send_data((char*)"end_receive");
 	std::string inputName = sock.receive_data();
 
 	id_from = id_currentUser;
 	if (!FindUserinUserSpisok(inputName)) {
-		sock.send_data((char*)"Пользователь с данным именем не найден\n");
+		sock.send_data((char*)"РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ РґР°РЅРЅС‹Рј РёРјРµРЅРµРј РЅРµ РЅР°Р№РґРµРЅ\n");
 	}
 	else {
-		sock.send_data((char*)"\nВведите текст сообщения: \n");
+		sock.send_data((char*)"\nР’РІРµРґРёС‚Рµ С‚РµРєСЃС‚ СЃРѕРѕР±С‰РµРЅРёСЏ: \n");
 		sock.send_data((char*)"end_receive");
 		std::string text = sock.receive_data();
 
 		db.mysql_start();
-		if (inputName == "all") {							  //отправка всем пользователям
+		if (inputName == "all") {							  //РѕС‚РїСЂР°РІРєР° РІСЃРµРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЏРј
 			std::string mesAll("INSERT INTO message(id, id_from_name, id_to_name, data, status, text) VALUES (default, \"" + id_from + "\", '3', \"" + mbstr + "\", '0', \"" + text + "\")");
-			mysql_query(&db.mysql, mesAll.c_str()); //Делаем запрос к таблице
+			mysql_query(&db.mysql, mesAll.c_str()); //Р”РµР»Р°РµРј Р·Р°РїСЂРѕСЃ Рє С‚Р°Р±Р»РёС†Рµ
 			mysql_close(&db.mysql);
-			sock.send_data((char*)"Сообщение разослано всем пользователям!\n");
+			sock.send_data((char*)"РЎРѕРѕР±С‰РµРЅРёРµ СЂР°Р·РѕСЃР»Р°РЅРѕ РІСЃРµРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЏРј!\n");
 		}
-		else {													//отправка личных сообщений
+		else {													//РѕС‚РїСЂР°РІРєР° Р»РёС‡РЅС‹С… СЃРѕРѕР±С‰РµРЅРёР№
 			std:string id_t("SELECT id FROM user_spisok WHERE name = \"" + inputName + "\" ");
-			mysql_query(&db.mysql, id_t.c_str()); //Делаем запрос к таблице
+			mysql_query(&db.mysql, id_t.c_str()); //Р”РµР»Р°РµРј Р·Р°РїСЂРѕСЃ Рє С‚Р°Р±Р»РёС†Рµ
 			if (db.res = mysql_store_result(&db.mysql)) {
 				while (db.row = mysql_fetch_row(db.res)) {
 					for (size_t i = 0; i < mysql_num_fields(db.res); i++) {
@@ -340,10 +337,8 @@ void Chat_Server::setAddMessage() {						    	//метод добавления сообщения в мас
 				}
 			}
 			std::string mes("INSERT INTO message(id, id_from_name, id_to_name, data, status, text) VALUES (default, \"" + id_from + "\", \"" + id_to + "\", \"" + mbstr + "\", '0', \"" + text + "\")");
-			mysql_query(&db.mysql, mes.c_str()); //Делаем запрос к таблице	
+			mysql_query(&db.mysql, mes.c_str()); //Р”РµР»Р°РµРј Р·Р°РїСЂРѕСЃ Рє С‚Р°Р±Р»РёС†Рµ	
 		}
 		mysql_close(&db.mysql);
 	}
 }
-
-
