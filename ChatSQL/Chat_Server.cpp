@@ -78,16 +78,20 @@ void Chat_Server::SignIn() {								//вход по логину и паролю
 }
 
 void Chat_Server::ShowMessage() {									//прочитать сообщения
-	sock.send_data((char*)"\n------Введите действиe:------\n1 - Личные\n2 - Общие\n0 - Назад\n");
+	sock.send_data((char*)"\n------Введите действиe:------\n1 - Личные не прочитанные\n2 - Личные \n3 - Общие\n0 - Назад\n");
 	sock.send_data((char*)"end_receive");
 	char* d = sock.receive_data();
 
 	switch (d[0]) {
 	case '1':
-		setPrivateShowChat();   //вызываем метод вывода личных сообщений  
+		setUnreadPrivateShowChat();   //вызываем метод вывода не прочитанных личных сообщений  
 		break;
 	case '2':
+		setPrivateShowChat();		//вызываем метод вывода личных сообщений 
+		break;
+	case '3':
 		setAllShowChat();		 //вызываем метод вывода общих сообщений
+		break;
 	case '0':
 		break;
 	default:
@@ -102,7 +106,7 @@ bool Chat_Server::FindLogin(const std::string& login) {								//метод проверки 
 	mysql_query(&db.mysql, log.c_str()); //Делаем запрос к таблице
 
 	if (db.res = mysql_store_result(&db.mysql)) {
-		if (mysql_num_rows(db.res) == 0) //cout << "нет логина" << endl;
+		if (mysql_num_rows(db.res) == 0) 
 			return false;
 	}
 	return true;
@@ -212,12 +216,48 @@ bool Chat_Server::FindUserinUserSpisok(const std::string& name) {	//метод провер
 	mysql_close(&db.mysql);
 }
 
-void Chat_Server::setPrivateShowChat() {				//метод чтения личных сообщений
+void Chat_Server::setUnreadPrivateShowChat() {				//метод чтения непрочитанных личных сообщений
 	db.mysql_start();
 	std::string id_to = id_currentUser;
 	sock.send_data((char*)"--------------ЧАТ--------------\n");
-	std::string mess("SELECT name, text FROM message join user_spisok on message.id_from_name = user_spisok.id WHERE status = '0' AND id_to_name = \"" + id_to + "\"");
+	std::string mess("SELECT name, text FROM message JOIN user_spisok ON message.id_from_name = user_spisok.id WHERE status = '0' AND id_to_name = \"" + id_to + "\"");
 	mysql_query(&db.mysql, mess.c_str()); //Делаем запрос к таблице
+	
+	if (db.res = mysql_store_result(&db.mysql)) {	
+		if (mysql_num_rows(db.res) == 0){
+			sock.send_data((char*)"У Вас нет не прочитанных сообщений!\n");
+		}
+		else {
+			while (db.row = mysql_fetch_row(db.res)) {
+				for (size_t i = 1; i < mysql_num_fields(db.res); ++i) {
+					sock.send_data((char*)"От ");
+					sock.send_data(db.row[0]);
+					sock.send_data((char*)": ");
+					sock.send_data(db.row[1]);
+					sock.send_data((char*)"\n");
+				}
+			}
+		}
+	}
+	std::string mes("UPDATE message JOIN user_spisok ON message.id_from_name = user_spisok.id SET status = '1' WHERE status = '0' AND id_to_name = \"" + id_to + "\"");
+	mysql_query(&db.mysql, mes.c_str()); //Делаем запрос к таблице
+
+	sock.send_data((char*)"-------------------------------");
+	mysql_close(&db.mysql);
+}
+
+void Chat_Server::setPrivateShowChat()				//метод чтения личных сообщений
+{
+	db.mysql_start();
+	std::string id_to = id_currentUser;
+	sock.send_data((char*)"--------------ЧАТ--------------\n");
+	std::string mesp("SELECT name, text FROM message RIGHT JOIN user_spisok on message.id_from_name = user_spisok.id WHERE id_to_name = \"" + id_to + "\" OR id_from_name = \"" + id_to + "\" ORDER BY data");
+	
+	
+	std::cout << mesp << std::endl;
+
+
+	mysql_query(&db.mysql, mesp.c_str()); //Делаем запрос к таблице
 	if (db.res = mysql_store_result(&db.mysql)) {
 		while (db.row = mysql_fetch_row(db.res)) {
 			for (size_t i = 1; i < mysql_num_fields(db.res); ++i) {
@@ -229,7 +269,7 @@ void Chat_Server::setPrivateShowChat() {				//метод чтения личных сообщений
 			}
 		}
 	}
-	std::string mes("UPDATE message JOIN user_spisok ON message.id_from_name = user_spisok.id SET status = '1' WHERE status = '0' AND id_to_name = \"" + id_to + "\"");
+	std::string mes("UPDATE message JOIN user_spisok ON message.id_from_name = user_spisok.id SET status = '1' WHERE id_to_name = \"" + id_to + "\"");
 	mysql_query(&db.mysql, mes.c_str()); //Делаем запрос к таблице
 
 	sock.send_data((char*)"-------------------------------");
