@@ -1,21 +1,18 @@
 #include "Socket.h"
 
-Socket_server::~Socket_server()
-{
+Socket_server::~Socket_server(){
     closesocket(socket_id);
     WSACleanup();
 }
-
-
-Socket_server::Socket_server() {                                // Создадим сокет
-    tcpserveraddress.sin_addr.s_addr = htonl(INADDR_ANY);       // Установим адрес сервера
-    tcpserveraddress.sin_port = htons(PORT);                    // Зададим номер порта
-    tcpserveraddress.sin_family = AF_INET;                      // Используем IPv4
+Socket_server::Socket_server() {                                // РЎРѕР·РґР°РґРёРј СЃРѕРєРµС‚
+    tcpserveraddress.sin_addr.s_addr = htonl(INADDR_ANY);       // РЈСЃС‚Р°РЅРѕРІРёРј Р°РґСЂРµСЃ СЃРµСЂРІРµСЂР°
+    tcpserveraddress.sin_port = htons(PORT);                    // Р—Р°РґР°РґРёРј РЅРѕРјРµСЂ РїРѕСЂС‚Р°
+    tcpserveraddress.sin_family = AF_INET;                      // РСЃРїРѕР»СЊР·СѓРµРј IPv4
 
     WSADATA wsaData;
     int result_code = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (result_code != NO_ERROR) {
-        std::cout << "Winsock Initialize failed with error: " << result_code << std::endl;   //111Не удалось инициализировать Winsock с ошибкой11111111
+        std::cout << "Winsock Initialize failed with error: " << result_code << std::endl; 
         return;
     }
     socket_id = socket(AF_INET, SOCK_STREAM, 0);
@@ -32,7 +29,7 @@ Socket_server::Socket_server() {                                // Создадим соке
     listen_socket();
 }
 
-bool Socket_server::listen_socket() {               // Поставим сервер на прием данных
+bool Socket_server::listen_socket() {               // РџРѕСЃС‚Р°РІРёРј СЃРµСЂРІРµСЂ РЅР° РїСЂРёРµРј РґР°РЅРЅС‹С…
     int result_code = listen(socket_id, 5);
     if (result_code != NO_ERROR) {
         std::cout << "Listening error: " << result_code;
@@ -53,7 +50,7 @@ bool Socket_server::listen_socket() {               // Поставим сервер на прием 
     return true;
 }
 
-char* Socket_server::receive_data() {                   //получение данных на сервер
+char* Socket_server::receive_data() {                   //РїРѕР»СѓС‡РµРЅРёРµ РґР°РЅРЅС‹С… РЅР° СЃРµСЂРІРµСЂ
     int result = recv(accept_socket, message, MESSAGE_LENGTH, 0);
     if (result > 0) {
         message[result] = '\0';
@@ -74,7 +71,7 @@ char* Socket_server::receive_data() {                   //получение данных на се
     return message;
 }
 
-int Socket_server::send_data(char* msg) {               //посылаем данные из сервера
+int Socket_server::send_data(char* msg) {               //РїРѕСЃС‹Р»Р°РµРј РґР°РЅРЅС‹Рµ РёР· СЃРµСЂРІРµСЂР°
     memset((message), '\0', (MESSAGE_LENGTH)), (void)0;
     strcpy_s(message, msg);
     int result = send(accept_socket, message, (int)strlen(message), 0);
@@ -120,7 +117,6 @@ Socket_client::~Socket_client() {
     WSACleanup();
 }
 
-
 char* Socket_client::receive_data() {
     int result = recv(socket_id, message, MESSAGE_LENGTH, 0);
     if (result > 0) {
@@ -142,7 +138,7 @@ char* Socket_client::receive_data() {
     return message;
 }
 int Socket_client::send_data(char* msg) {
-    memset((message), '\0', (MESSAGE_LENGTH)), (void)0; //bzero(message2, MESSAGE_LENGTH);
+    memset((message), '\0', (MESSAGE_LENGTH)), (void)0;
     strcpy_s(message, msg);
     int result = send(socket_id, message, (int)strlen(message), 0);
     if (result == SOCKET_ERROR) {
