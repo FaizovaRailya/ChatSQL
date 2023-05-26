@@ -6,6 +6,7 @@
 int main() {
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
+	
 	try {
 		bool f = true;
 		while (f) {
@@ -24,7 +25,6 @@ int main() {
 				break; }
 			case '0': {
 				std::cout << "Exit" << std::endl;
-
 				f = false;
 				break; }
 			default: {

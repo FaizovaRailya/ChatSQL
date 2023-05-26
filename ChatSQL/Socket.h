@@ -1,5 +1,4 @@
 #pragma once
-//#pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "ws2_32.lib")
 #include <iostream>
 #include <stdlib.h>
