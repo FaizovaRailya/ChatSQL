@@ -16,17 +16,17 @@ public:
 	char* id_currentUser = nullptr;
 
 	void Menu();
-	void SignIn();														  //вход по логину и паролю
-	void ShowMessage();													  //вход по логину и паролю
-	bool FindLogin(const std::string& login);							  //проверка логина
-	void NewUser();														  //создание нового пользователя
-	bool UserSearch(const std::string& login, const std::string& password);//поиск пользователя по логину и паролю
-	void PrintNamesUsers();												  //получение списка зарегестрированных пользователей
-	bool FindUserinUserSpisok(const std::string& name);					  //проверка корректно ли введено имя
-	void setUnreadPrivateShowChat();									  //чтение не прочитанных личных сообщений
-	void setPrivateShowChat();											  //чтение личных сообщений
-	void setAllShowChat();												  //чтение общих сообщений
-	void setAddMessage();												  //добавление сообщения в массив
+	void SignIn();								  //РІС…РѕРґ РїРѕ Р»РѕРіРёРЅСѓ Рё РїР°СЂРѕР»СЋ
+	void ShowMessage();							  //РІС…РѕРґ РїРѕ Р»РѕРіРёРЅСѓ Рё РїР°СЂРѕР»СЋ
+	bool FindLogin(const std::string& login);				  //РїСЂРѕРІРµСЂРєР° Р»РѕРіРёРЅР°
+	void NewUser();			    					  //СЃРѕР·РґР°РЅРёРµ РЅРѕРІРѕРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+	bool UserSearch(const std::string& login, const std::string& password);   //РїРѕРёСЃРє РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РїРѕ Р»РѕРіРёРЅСѓ Рё РїР°СЂРѕР»СЋ
+	void PrintNamesUsers();							  //РїРѕР»СѓС‡РµРЅРёРµ СЃРїРёСЃРєР° Р·Р°СЂРµРіРµСЃС‚СЂРёСЂРѕРІР°РЅРЅС‹С… РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№
+	bool FindUserinUserSpisok(const std::string& name);			  //РїСЂРѕРІРµСЂРєР° РєРѕСЂСЂРµРєС‚РЅРѕ Р»Рё РІРІРµРґРµРЅРѕ РёРјСЏ
+	void setUnreadPrivateShowChat();					  //С‡С‚РµРЅРёРµ РЅРµ РїСЂРѕС‡РёС‚Р°РЅРЅС‹С… Р»РёС‡РЅС‹С… СЃРѕРѕР±С‰РµРЅРёР№
+	void setPrivateShowChat();						  //С‡С‚РµРЅРёРµ Р»РёС‡РЅС‹С… СЃРѕРѕР±С‰РµРЅРёР№
+	void setAllShowChat();							  //С‡С‚РµРЅРёРµ РѕР±С‰РёС… СЃРѕРѕР±С‰РµРЅРёР№
+	void setAddMessage();							  //РґРѕР±Р°РІР»РµРЅРёРµ СЃРѕРѕР±С‰РµРЅРёСЏ РІ РјР°СЃСЃРёРІ
 };
 
 
