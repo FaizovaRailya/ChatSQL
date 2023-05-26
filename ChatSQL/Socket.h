@@ -7,8 +7,8 @@
 #include <ws2tcpip.h>
 #include <stdio.h>
 
-#define MESSAGE_LENGTH 1024     // Максимальный размер буфера для данных
-#define PORT 7777               // Будем использовать этот номер порта
+#define MESSAGE_LENGTH 1024     // РњР°РєСЃРёРјР°Р»СЊРЅС‹Р№ СЂР°Р·РјРµСЂ Р±СѓС„РµСЂР° РґР»СЏ РґР°РЅРЅС‹С…
+#define PORT 7777               // Р‘СѓРґРµРј РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ СЌС‚РѕС‚ РЅРѕРјРµСЂ РїРѕСЂС‚Р°
 
 class Socket_server {
 private:
