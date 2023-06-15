@@ -9,6 +9,7 @@
 void Chat_Server::Menu() {
 	bool f = true;
 	while (f) {
+		sock.send_data((char*)"hi");
 		sock.send_data((char*)"------Введите действие:------\n1 - вход\n2 - регистрация\n0 - выход\n");
 		sock.send_data((char*)"end_receive");
 		char* choise = sock.receive_data();
@@ -200,16 +201,13 @@ void Chat_Server::PrintNamesUsers() {				    //метод получения с�
 
 bool Chat_Server::FindUserinUserSpisok(const std::string& name) {	//метод проверяет корректно ли введено имя	
 	db.mysql_start();
-	mysql_query(&db.mysql, "SELECT name FROM user_spisok"); //Делаем запрос к таблице
+	std::string n("SELECT name FROM user_spisok WHERE name = \"" + name + "\"");
+	mysql_query(&db.mysql, n.c_str()); //Делаем запрос к таблице
 	if (db.res = mysql_store_result(&db.mysql)) {
-		while (db.row = mysql_fetch_row(db.res)) {
-			for (size_t i = 0; i < mysql_num_fields(db.res); i++) {
-				if (db.row[i] == name)
-					return true;
-				else
-					return false;
-			}
-		}
+		if (mysql_num_rows(db.res) == 0)
+			return false;
+		else
+			return true;
 	}
 	mysql_close(&db.mysql);
 }
