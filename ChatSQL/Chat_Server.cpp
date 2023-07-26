@@ -1,7 +1,7 @@
-#include <iostream>
-#include<string>
 #include "Chat_Server.h"
 #include "Sha1.h"
+#include <iostream>
+#include<string>
 #include <ctime>
 #include <chrono>
 #pragma warning(disable : 4996)
@@ -9,7 +9,6 @@
 void Chat_Server::Menu() {
 	bool f = true;
 	while (f) {
-		sock.send_data((char*)"hi");
 		sock.send_data((char*)"------Введите действие:------\n1 - вход\n2 - регистрация\n0 - выход\n");
 		sock.send_data((char*)"end_receive");
 		char* choise = sock.receive_data();
@@ -108,8 +107,9 @@ bool Chat_Server::FindLogin(const std::string& login) {								//метод пр
 		if (mysql_num_rows(db.res) == 0) 
 			return false;
 	}
-	return true;
+	
 	mysql_close(&db.mysql);
+	return true;
 }
 
 void Chat_Server::NewUser() {					//метод создания нового пользователя
@@ -163,7 +163,7 @@ bool Chat_Server::UserSearch(const std::string& login, const std::string& passwo
 	unsigned int* _password = new unsigned int[5];
 	std::string _pw_str[5];
 	_password = sha1((char*)(password.data()), password.length());
-	for (size_t i = 0; i < 5; i++){
+	for (size_t i = 0; i < 5; i++) {
 		_pw_str[i] = std::to_string(_password[i]);
 	}
 	std::string pass(_pw_str[0] + " " + _pw_str[1].c_str() + " " + _pw_str[2] + " " + _pw_str[3] + " " + _pw_str[4]);
@@ -181,8 +181,8 @@ bool Chat_Server::UserSearch(const std::string& login, const std::string& passwo
 			}
 		}
 	}
-		return false;
-		mysql_close(&db.mysql);
+	mysql_close(&db.mysql);
+	return false;
 }
 
 void Chat_Server::PrintNamesUsers() {				    //метод получения списка зарегестрированных пользователей
@@ -292,7 +292,7 @@ void Chat_Server::setAllShowChat() {							// метод чтения общих
 	mysql_close(&db.mysql);
 }
 
-void Chat_Server::setAddMessage() {						    	//метод добавления сообщения в массив
+void Chat_Server::setAddMessage() {						    	//метод добавления сообщений
 	std::string id_from, id_to;
 	std::chrono::system_clock::time_point value_t = std::chrono::system_clock::now();
 	time_t timestamp = std::chrono::system_clock::to_time_t(value_t);
@@ -322,6 +322,8 @@ void Chat_Server::setAddMessage() {						    	//метод добавления 
 			std::string mesAll("INSERT INTO message(id, id_from_name, id_to_name, data, status, text) VALUES (default, \"" + id_from + "\", '3', \"" + mbstr + "\", '0', \"" + text + "\")");
 			mysql_query(&db.mysql, mesAll.c_str()); //Делаем запрос к таблице
 			mysql_close(&db.mysql);
+			messageList.push_back(Message(currentUser->getName(), "all", message));
+			
 			sock.send_data((char*)"Сообщение разослано всем пользователям!\n");
 		}
 		else {													//отправка личных сообщений
@@ -336,6 +338,7 @@ void Chat_Server::setAddMessage() {						    	//метод добавления 
 			}
 			std::string mes("INSERT INTO message(id, id_from_name, id_to_name, data, status, text) VALUES (default, \"" + id_from + "\", \"" + id_to + "\", \"" + mbstr + "\", '0', \"" + text + "\")");
 			mysql_query(&db.mysql, mes.c_str()); //Делаем запрос к таблице	
+messageList.push_back(Message(currentUser->getName(), inputName, message));
 		}
 		mysql_close(&db.mysql);
 	}
